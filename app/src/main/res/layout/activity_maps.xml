@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_map"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.example.jhonatashenrique.projetotcc.MapsActivity">
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.example.jhonatashenrique.projetotcc.MapsActivity" />
+
+    <ToggleButton
+        android:id="@+id/route"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="80dp"
+        android:layout_marginTop="5dp"
+        android:checked="true"
+        android:enabled="false"
+        android:text="Rota"
+        android:textColorLink="@color/colorPrimary"
+        android:textOff="Rota off"
+        android:textOn="Rota on"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/horarios"
+        android:layout_width="350dp"
+        android:layout_height="420dp"
+        android:layout_marginBottom="50dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="15dp"
+        android:background="@color/Azul_Claro"
+        android:clickable="true"
+        android:ems="10"
+        android:enabled="false"
+        android:scrollIndicators="right|end"
+        android:scrollbars="vertical"
+        android:textAlignment="center"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/bthorarios"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:background="@android:drawable/ic_menu_sort_by_size"
+        android:visibility="gone" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:visibility="gone"
+        map:backgroundTint="@android:color/holo_blue_light"
+        map:srcCompat="@android:drawable/ic_dialog_dialer" />
+
+    <TextView
+        android:id="@+id/txtRota"
+        android:layout_width="250dp"
+        android:layout_height="65dp"
+        android:layout_gravity="bottom"
+        android:background="@android:color/background_light"
+        android:ems="10"
+        android:inputType="none"
+        android:textAlignment="center"
+        android:theme="@style/Base.Animation.AppCompat.Dialog"
+        android:visibility="gone" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btmain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="7dp"
+        android:clickable="true"
+        android:src="@drawable/ic_menu_send"
+        android:visibility="gone"
+        map:backgroundTint="@android:color/holo_blue_dark"
+        map:fabSize="mini" />
+
+
+</FrameLayout>
