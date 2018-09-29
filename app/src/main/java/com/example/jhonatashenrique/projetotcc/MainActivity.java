@@ -1,9 +1,19 @@
 package com.example.jhonatashenrique.projetotcc;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.util.Log;
+import android.view.ContextMenu;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -15,21 +25,33 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     TextView txthorario;
-    ImageView img;
+    ListView listalinha;
     FloatingActionButton fab;
-
+    ProgressBar indeterminateProgress;
     ArrayList<String> listatoedit = new ArrayList<>();
     WebView wv;
+    WebView wvhorarios;
+    Linha linha;
+    LinhaDAO daoLinha;
+    List<Linha> listLin;
+    ArrayAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,56 +59,59 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.e("Permission error", "You have permission");
+            } else {
 
+                Log.e("Permission error", "You have asked for permission");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            }
+        }
+
+        indeterminateProgress = (ProgressBar) findViewById(R.id.indeterminateProgress2);
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        listalinha = (ListView) findViewById(R.id.listaLinhas);
+        listalinha.setClickable(true);
 
         wv = (WebView) findViewById(R.id.wb);
+        wvhorarios = (WebView) findViewById(R.id.wvhorarios);
 
         Intent intent = getIntent();
         listatoedit = (ArrayList<String>) intent.getSerializableExtra("lista");
+
         if (listatoedit != null){
+            String hor="";
+            String aux="";
+            for (String cada: listatoedit) {
+                hor = ""+aux +""+cada;
+                aux = hor;
+            }
             wv.setVisibility(View.VISIBLE);
 
             WebSettings ws = wv.getSettings();
             ws.setJavaScriptEnabled(true);
             ws.setSupportZoom(true);
-            wv.loadData(listatoedit.toString(), "text/html", "UTF-8");
+            wv.loadData(hor, "text/html", "UTF-8");
 
             fab.setEnabled(false);
 
         }
 
-        img = (ImageView) findViewById(R.id.imgEasier);
-
-        txthorario = (TextView) findViewById(R.id.txthorario);
-        txthorario.setText("Horarios dos Onibus de Assis e Candido Mota - Dias Uteis" +
-                "\nAssis x CM - 6:00  | CM x Assis - 6:00" +
-                "\nAssis x CM - 6:30  | CM x Assis - 6:30" +
-                "\nAssis x CM - 7:00  | CM x Assis - 7:00" +
-                "\nAssis x CM - 7:30  | CM x Assis - 7:30" +
-                "\nAssis x CM - 8:00  | CM x Assis - 8:00" +
-                "\nAssis x CM - 8:40  | CM x Assis - 8:40" +
-                "\nAssis x CM - 9:20  | CM x Assis - 9:20" +
-                "\nAssis x CM - 10:00 | CM x Assis - 10:00" +
-                "\nAssis x CM - 10:40 | CM x Assis - 10:40" +
-                "\nAssis x CM - 11:20 | CM x Assis - 11:20" +
-                "\nAssis x CM - 12:00 | CM x Assis - 12:00" +
-                "\nAssis x CM - 12:40 | CM x Assis - 12:40" +
-                "\nAssis x CM - 13:20 | CM x Assis - 13:20" +
-                "\nAssis x CM - 14:00 | CM x Assis - 14:00" +
-                "\nAssis x CM - 14:40 | CM x Assis - 14:40" +
-                "\nAssis x CM - 15:20 | CM x Assis - 15:20" +
-                "\nAssis x CM - 16:00 | CM x Assis - 16:00" +
-                "\nAssis x CM - 16:40 | CM x Assis - 16:40" +
-                "\nAssis x CM - 17:20 | CM x Assis - 17:20" +
-                "\nAssis x CM - 18:00 | CM x Assis - 18:00" +
-                "\nAssis x CM - 18:40 | CM x Assis - 18:40" +
-                "\nAssis x CM - 19:20 | CM x Assis - 19:20" +
-                "\nAssis x CM - 20:00 | CM x Assis - 20:40" +
-                "\nAssis x CM - 21:20 | CM x Assis - 22:00" +
-                "\nAssis x CM - 23:00 | CM x Assis - 23:30" +
-                "\nAssis x CM - 00:00 | ------------------");
-
+        listalinha.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
+                linha = (Linha) adapter.getItemAtPosition(position);
+                Intent i = new Intent(MainActivity.this, MapsActivity.class);
+                i.putExtra("linha",linha);
+                startActivity(i);
+            }
+        });
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -105,6 +130,21 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+    }
+
+    @Override
+    protected void onStart() {
+        indeterminateProgress.setVisibility(View.VISIBLE);
+        Handler handle = new Handler();
+        handle.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                carregarLinhas();
+            }
+        }, 2500);
+
+        super.onStart();
     }
 
     @Override
@@ -150,19 +190,18 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_camera) {
 
             if(auxbthorario == 0){
-                img.setVisibility(View.INVISIBLE);
+
                 if (listatoedit != null)
                 wv.setVisibility(View.INVISIBLE);
 
-                txthorario.setVisibility(View.VISIBLE);
-                txthorario.setEnabled(true);
+                wvhorarios.setVisibility(View.VISIBLE);
                 auxbthorario ++;
             }else{
-                img.setVisibility(View.VISIBLE);
+
                 if (listatoedit != null)
                 wv.setVisibility(View.VISIBLE);
 
-                txthorario.setVisibility(View.GONE);
+                wvhorarios.setVisibility(View.GONE);
                 auxbthorario = 0;
             }
 
@@ -178,4 +217,33 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    @Override
+    protected void onResume() {
+        indeterminateProgress.setVisibility(View.VISIBLE);
+        Handler handle = new Handler();
+        handle.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                carregarLinhas();
+            }
+        }, 2500);
+        super.onResume();
+    }
+
+    public void carregarLinhas(){
+        daoLinha = new LinhaDAO ();
+        listLin = daoLinha.buscarTodasLinha();
+        if (listLin != null){
+            AdapterLinhaPersonalizado adapter =
+                    new AdapterLinhaPersonalizado(listLin, this);
+            listalinha.setAdapter(adapter);
+
+            indeterminateProgress.setVisibility(View.GONE);
+        }else{
+            Toast.makeText(MainActivity.this, "Não foi possível listar as Linhas!", Toast.LENGTH_SHORT).show();
+            indeterminateProgress.setVisibility(View.GONE);
+        }
+    }
+
 }

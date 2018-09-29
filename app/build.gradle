@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "25.0.0"
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.example.jhonatashenrique.projetotcc"
         minSdkVersion 19
@@ -21,20 +21,21 @@ android {
 
 dependencies {
     implementation 'com.android.support:design:24.2.1'
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile files('libs/ksoap2-android-assembly-2.5.8-jar-with-dependencies.jar')
+    implementation files('libs/ksoap2-android-assembly-2.5.8-jar-with-dependencies.jar')
 
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.google.android.gms:play-services-maps:11.0.4'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.github.jd-alexander:library:1.1.0'
-    compile 'com.google.maps:google-maps-services:0.1.20'
-    compile 'com.google.maps.android:android-maps-utils:0.4+'
-    compile 'org.slf4j:slf4j-nop:1.7.25'
+    implementation 'com.android.support:appcompat-v7:24.2.1'
+    implementation 'com.google.android.gms:play-services-maps:11.0.4'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.github.jd-alexander:library:1.1.0'
+    implementation 'com.google.maps:google-maps-services:0.1.20'
+    implementation 'com.google.maps.android:android-maps-utils:0.4+'
+    implementation 'org.slf4j:slf4j-nop:1.7.25'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.3'
 
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }

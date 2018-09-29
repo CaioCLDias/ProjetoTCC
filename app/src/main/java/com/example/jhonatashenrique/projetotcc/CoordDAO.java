@@ -13,7 +13,7 @@ import java.util.Vector;
  */
 
 public class CoordDAO {
-    private static final String URL = "http://192.168.0.199:8080/WSTCC/services/NserieDAO?wsdl";
+    private static final String URL = "http://servidor:8080/WSTCC/services/NserieDAO?wsdl";
     private static final String NAMESPACE = "http://agoravai.tccprojeto.com.br";
     private static final String INSERIR = "inserirNserie";
     private static final String EXCLUIR = "excluirNserie";
@@ -89,7 +89,7 @@ public class CoordDAO {
         HttpTransportSE http = new HttpTransportSE(URL);
         try {
             http.call("urn: " + BUSCAR_TODOS, envelope);
-            Vector<SoapObject> resposta = (Vector<SoapObject>) envelope.getResponse();
+            ArrayList<SoapObject> resposta = (ArrayList<SoapObject>) envelope.getResponse();
             for (SoapObject soapObject : resposta) {
                 Coord coord = new Coord();
                 coord.setId(Integer.parseInt(soapObject.getProperty("id").toString()));
@@ -114,7 +114,7 @@ public class CoordDAO {
         envelope.dotNet = true;
         envelope.encodingStyle = SoapSerializationEnvelope.XSD;
         envelope.setOutputSoapObject(buscarCoord);
-        HttpTransportSE http = new HttpTransportSE(URL);
+        HttpTransportSE http = new HttpTransportSE(URL, 2000);
         try {
             http.call("urn: " + BUSCAR_ID, envelope);
             SoapObject resposta = (SoapObject) envelope.getResponse();

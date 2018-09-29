@@ -15,14 +15,18 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -54,6 +58,7 @@ import com.google.maps.model.TravelMode;
 import org.joda.time.DateTime;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,9 +66,11 @@ import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener {
     Double latPoint;
     Double lngPoint;
+    long connec = 10;
+    long ok = 0;
     public static int overview;
     LatLng locali,minhaloc, latlng;
     public static GoogleMap mMap;
@@ -74,32 +81,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     String minhaloc2, locali2;
     ArrayList<String> lista = new ArrayList<>();
     FloatingActionButton btmain;
-
-    private static final LatLng ponto1 = new LatLng(-22.743136, -50.388386);
-    private static final LatLng ponto2 = new LatLng(-22.745568, -50.389934);
-    private static final LatLng ponto3 = new LatLng(-22.747181, -50.387345);
-    private static final LatLng ponto4 = new LatLng(-22.750274, -50.382367);
-    private static final LatLng ponto5 = new LatLng(-22.754154, -50.376184);
-    private static final LatLng ponto6 = new LatLng(-22.752909, -50.374630);
-    private static final LatLng ponto7 = new LatLng(-22.751183, -50.377419);
-    private static final LatLng ponto8 = new LatLng(-22.747253, -50.382051);
-    private static final LatLng ponto9 = new LatLng(-22.743232, -50.386774);
-    private static final LatLng ponto10 = new LatLng(-22.735991, -50.390014);
-    private static final LatLng ponto11 = new LatLng(-22.745568, -50.389934);
-    private static final LatLng ponto12 = new LatLng(-22.730952, -50.390224);
-
-    private Marker mPonto1;
-    private Marker mPonto2;
-    private Marker mPonto3;
-    private Marker mPonto4;
-    private Marker mPonto5;
-    private Marker mPonto6;
-    private Marker mPonto7;
-    private Marker mPonto8;
-    private Marker mPonto9;
-    private Marker mPonto10;
-    private Marker mPonto11;
-    private Marker mPonto12;
+    Pontos pontos;
+    Linha linha;
+    PontosDAO daoPontos;
+    ArrayList<Pontos> listPon;
+    Coord coord;
+    ProgressBar pb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +96,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true); //Mostrar o botão
+        getSupportActionBar().setHomeButtonEnabled(true);      //Ativar o botão
+        getSupportActionBar().setTitle("Voltar");     //Titulo para ser exibido na sua Action Bar em frente à seta
+
+        pb = (ProgressBar) findViewById(R.id.indeterminateBar);
+
+        Intent intent = getIntent();
+        linha = (Linha) intent.getSerializableExtra("linha");
+
+        try{
+            daoPontos = new PontosDAO();
+            listPon = daoPontos.buscarTodasPontos(linha.getId());
+
+        }catch (Exception e){
+            e.printStackTrace();
+
+        }
 
         txtRota = (TextView) findViewById(R.id.txtRota);
         btmain = (FloatingActionButton) findViewById(R.id.btmain);
@@ -128,6 +132,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) { //Botão adicional na ToolBar
+        switch (item.getItemId()) {
+            case android.R.id.home:  //ID do seu botão (gerado automaticamente pelo android, usando como está, deve funcionar
+                finish();
+                break;
+            default:break;
+        }
+        return true;
     }
 
     //Criando o metodo para executar o chamado e as ações relacionada a Directions API em uma outro processo inBackground
@@ -215,32 +230,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         for (int i=0; i<j;i++ ){
             if (i==0) {
-                list.add("<!DOCTYPE html>" +
-                        "<html>" +
+                list.add("<html>" +
                         "<body>" +
                         "<h1>Rota</h1>" +
                         "<font size=5>" +
                         "<ul>" +
-                        "<li>" + results.routes[overview].legs[overview].steps[i].htmlInstructions);
+                        "<fieldset><li>" + results.routes[overview].legs[overview].steps[i].htmlInstructions +"</fieldset>");
             }else if (i == f){
-                list.add("<br><li>" + results.routes[overview].legs[overview].steps[i].htmlInstructions);
+                list.add("<br><fieldset><li>" + results.routes[overview].legs[overview].steps[i].htmlInstructions +"</fieldset>");
                 list.add("<ul>" +
                         "</font>" +
                         "<body>" +
                         "<html>");
             }else{
-                list.add("<br><li>" + results.routes[overview].legs[overview].steps[i].htmlInstructions);
+                list.add("<br><fieldset><li>" + results.routes[overview].legs[overview].steps[i].htmlInstructions +"</fieldset>");
             }
         }
-        Log.i("Info",""+list);
-
         lista = list;
-
-        //mMap.addMarker(new MarkerOptions().position(new LatLng(results.routes[overview].legs[overview].startLocation.lat,
-        // results.routes[overview].legs[overview].startLocation.lng)).title(results.routes[overview].legs[overview].startAddress));
-        //mMap.addMarker(new MarkerOptions().position(new LatLng(results.routes[overview].legs[overview].endLocation.lat,
-        // results.routes[overview].legs[overview].endLocation.lng)).title(results.routes[overview].legs[overview].startAddress)
-        // .snippet(getEndLocationTitle(results)).icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
     }
 
     //Metodo que retorna as info da Diretions API
@@ -285,8 +291,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         GoogleMap mMap;
                         mMap = googleMap;
                         onMapReady(mMap);
-                    }else{
-                        Toast.makeText(MapsActivity.this,"Localização atual sendo encontrada", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MapsActivity.this, "Localização atual sendo encontrada", Toast.LENGTH_LONG).show();
                         toggle.setChecked(false);
                     }
 
@@ -294,144 +300,103 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mMap.clear();
                     btmain.setVisibility(View.GONE);
                     txtRota.setVisibility(View.GONE);
-                    locali=null;
+                    locali = null;
                     onMapReady(mMap);
                 }
             }
         });
 
         //Só atualiza a camera se nao tiver minha localizacao gps, basicamente ao iniciar o app
-        if (minhaloc2 == null){
-            latlng = new LatLng(-22.743136, -50.388386);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, 14));
+        if (minhaloc2 == null) {
+            Pontos pontos = listPon.get(0);
+            latlng = new LatLng(pontos.getLatitude(), pontos.getLongitude());
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng, 15));
         }
 
         mMap.setMyLocationEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
-        //Adicionando marcadores e um objeto para cada um
-        mPonto1 = mMap.addMarker(new MarkerOptions()
-                .position(ponto1)
-                .title("Ponto 1")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto1.setTag(0);
+        try {
+            for (Pontos pontos : listPon) {
+                LatLng latLng = new LatLng(pontos.getLatitude(), pontos.getLongitude());
+                final Marker marke = mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title("" + pontos.getNome())
+                        .snippet("" + pontos.getDetalhesPonto())
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
+                marke.setTag(0);
 
-        mPonto2 = mMap.addMarker(new MarkerOptions()
-                .position(ponto2)
-                    .title("Ponto 2")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto2.setTag(0);
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
 
-        mPonto3 = mMap.addMarker(new MarkerOptions()
-                .position(ponto3)
-                .title("Ponto 3")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto3.setTag(0);
+        } catch (Exception e2) {
+            e2.printStackTrace();
+        }
 
-        mPonto4 = mMap.addMarker(new MarkerOptions()
-                .position(ponto4)
-                .title("Ponto 4")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto4.setTag(0);
+        final Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(-18.870544, -5.939916)).title("Onde estou?"));
 
-        mPonto5 = mMap.addMarker(new MarkerOptions()
-                .position(ponto5)
-                .title("Ponto 5")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto5.setTag(0);
-
-        mPonto6 = mMap.addMarker(new MarkerOptions()
-                .position(ponto6)
-                .title("Ponto 6")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto6.setTag(0);
-
-        mPonto7 = mMap.addMarker(new MarkerOptions()
-                .position(ponto7)
-                .title("Ponto 7")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto7.setTag(0);
-
-        mPonto8 = mMap.addMarker(new MarkerOptions()
-                .position(ponto8)
-                .title("Ponto 8")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto8.setTag(0);
-
-        mPonto9 = mMap.addMarker(new MarkerOptions()
-                .position(ponto9)
-                .title("Ponto 9")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto9.setTag(0);
-
-        mPonto10 = mMap.addMarker(new MarkerOptions()
-                .position(ponto10)
-                .title("Ponto 10")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto10.setTag(0);
-
-        mPonto11 = mMap.addMarker(new MarkerOptions()
-                .position(ponto11)
-                .title("Ponto 11")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto11.setTag(0);
-
-        mPonto12 = mMap.addMarker(new MarkerOptions()
-                .position(ponto12)
-                .title("Ponto 12")
-                .snippet("")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.banco)));
-        mPonto12.setTag(0);
-
-        final Marker marker = mMap.addMarker(new MarkerOptions().position(latlng).title("Onde estou?"));
-
-        final Marker marker2 = mMap.addMarker(new MarkerOptions().position(latlng).title("Onibus posicionado")
+        final Marker marker2 = mMap.addMarker(new MarkerOptions().position(new LatLng(-18.870544, -5.939916)).title("Onibus")
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.bussweb)));
 
         //Criando um Listner para o click dos marcadores
         mMap.setOnMarkerClickListener(this);
         mMap.setOnMapClickListener(this);
 
-        //Buscando e setando localizacao atual e do buss
-        try {
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            LocationListener locationListener = new LocationListener() {
-                public void onLocationChanged(Location location) {
-                    minhaloc = new LatLng(location.getLatitude(), location.getLongitude());
-                    minhaloc2 = ""+location.getLatitude() +","+location.getLongitude();
-                    marker.setPosition(minhaloc);
-                    CoordDAO dao = new CoordDAO();
-                     Coord coord = dao.buscarNseriePorId(1);
-//                    Log.i("Teste: ", "" + coord.getCoordenadas() + ", " + coord.getSegundo());
-                     LatLng latlng2 = new LatLng(coord.getCoordenadas(), coord.getSegundo());
-                     marker2.setPosition(latlng2);
+        pb.setVisibility(View.VISIBLE);
 
-                }
+            //Buscando e setando localizacao atual e do buss
+            try {
+                LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                LocationListener locationListener = new LocationListener() {
+                    public void onLocationChanged(Location location) {
+                        minhaloc = new LatLng(location.getLatitude(), location.getLongitude());
+                        minhaloc2 = "" + location.getLatitude() + "," + location.getLongitude();
+                        marker.setPosition(minhaloc);
 
-                public void onStatusChanged(String provider, int status, Bundle extras) {                }
 
-                public void onProviderEnabled(String provider) {                }
+                        if (connec == 10) {
+                            CoordDAO dao = new CoordDAO();
+                            coord = dao.buscarNseriePorId(1);
+                            if (coord != null) {
+                                pb.setVisibility(View.GONE);
+                                LatLng latlng2 = new LatLng(coord.getCoordenadas(), coord.getSegundo());
+                                marker2.setPosition(latlng2);
+                            } else {
+                                pb.setVisibility(View.GONE);
+                                if (ok == 0) {
+                                    Toast.makeText(MapsActivity.this, "Não foi possível encontrar a localização do Ônibus", Toast.LENGTH_SHORT).show();
+                                    ok++;
+                                    }
+                                }
+                            connec = 0;
 
-                public void onProviderDisabled(String provider) {                }
-            };
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        } catch (SecurityException ex) {
-            Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                        connec++;
+                    }
+
+                    public void onStatusChanged(String provider, int status, Bundle extras) {
+                    }
+
+                    public void onProviderEnabled(String provider) {
+                    }
+
+                    public void onProviderDisabled(String provider) {
+                    }
+                };
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            }
+            catch (SecurityException ex) {
+                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
+            }
+            catch (NullPointerException e1){
+                e1.printStackTrace();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         }
 
-    }
 
     //Metodo para o Listner dos marcadores
     public boolean onMarkerClick(final Marker marker3) {

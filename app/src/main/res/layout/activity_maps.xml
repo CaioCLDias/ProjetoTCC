@@ -90,5 +90,15 @@
         map:backgroundTint="@android:color/holo_blue_dark"
         map:fabSize="mini" />
 
+    <ProgressBar
+        android:id="@+id/indeterminateBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="114dp"
+        android:layout_height="109dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="-10dp"
+        android:indeterminateOnly="true"
+        android:visibility="gone" />
+
 
 </FrameLayout>

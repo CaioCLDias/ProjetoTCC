@@ -21,7 +21,7 @@ public class SplashScreenActivity extends AppCompatActivity {
             public void run() {
                 mostrarMapa();
             }
-        }, 2000);
+        }, 1500);
     }
 
     private void mostrarMapa() {
